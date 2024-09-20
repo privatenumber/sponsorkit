@@ -90,10 +90,15 @@ export async function fetchGitHubSponsors(
   return processed
 }
 
-export function makeQuery(login: string, type: string, cursor?: string) {
+export function makeQuery(
+  login: string,
+  type: string,
+  activeOnly = true,
+  cursor?: string,
+) {
   return graphql`{
   ${type}(login: "${login}") {
-    sponsorshipsAsMaintainer(first: 100${cursor ? ` after: "${cursor}"` : ''}) {
+    sponsorshipsAsMaintainer(${activeOnly ? `activeOnly: "${Boolean(activeOnly)}" ` : ''}first: 100${cursor ? ` after: "${cursor}"` : ''}) {
       totalCount
       pageInfo {
         endCursor
