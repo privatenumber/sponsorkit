@@ -18,10 +18,12 @@ export const GitHubProvider: Provider = {
   },
 }
 
+type GitHubType = 'user' | 'organization'
+
 export async function fetchGitHubSponsors(
   token: string,
   login: string,
-  type: string,
+  type: GitHubType,
   config: SponsorkitConfig,
 ): Promise<Sponsorship[]> {
   if (!token)
@@ -31,11 +33,18 @@ export async function fetchGitHubSponsors(
   if (!['user', 'organization'].includes(type))
     throw new Error('GitHub type must be either `user` or `organization`')
 
+  console.log('fetchGitHubSponsors', {
+    config,
+  })
+
   const sponsors: Sponsorship[] = []
   let cursor
 
   do {
-    const query = makeQuery(login, type, cursor)
+    const query = makeQuery(login, type, false, cursor)
+    console.log({
+      query,
+    })
     const data = await $fetch(API, {
       method: 'POST',
       body: { query },
@@ -51,6 +60,9 @@ export async function fetchGitHubSponsors(
       throw new Error('Token is missing the `read:user` and/or `read:org` scopes')
     else if (data.errors?.length)
       throw new Error(`GitHub API error:\n${JSON.stringify(data.errors, null, 2)}`)
+
+    console.log('data')
+    console.dir(data, { colors: true, depth: null, maxArrayLength: null })
 
     sponsors.push(
       ...(data.data[type].sponsorshipsAsMaintainer.nodes || []),
@@ -72,33 +84,35 @@ export async function fetchGitHubSponsors(
         type: raw.sponsorEntity.__typename,
       },
       isOneTime: raw.tier.isOneTime,
-      monthlyDollars: raw.tier.monthlyPriceInDollars,
+      monthlyDollars: raw.isActive ? raw.tier.monthlyPriceInDollars : -1,
       privacyLevel: raw.privacyLevel,
       tierName: raw.tier.name,
       createdAt: raw.createdAt,
     }))
 
-  if (config.includePastSponsors) {
-    try {
-      processed.push(...await getPastSponsors(login))
-    }
-    catch (e) {
-      console.error('Failed to fetch past sponsors:', e)
-    }
-  }
+  // if (config.includePastSponsors) {
+  //   try {
+  //     const asdf = await getPastSponsors(login)
+  //     console.log({ asdf })
+  //     processed.push(...asdf)
+  //   }
+  //   catch (e) {
+  //     console.error('Failed to fetch past sponsors:', e)
+  //   }
+  // }
 
   return processed
 }
 
 export function makeQuery(
   login: string,
-  type: string,
+  type: GitHubType,
   activeOnly = true,
   cursor?: string,
 ) {
   return graphql`{
   ${type}(login: "${login}") {
-    sponsorshipsAsMaintainer(${activeOnly ? `activeOnly: "${Boolean(activeOnly)}" ` : ''}first: 100${cursor ? ` after: "${cursor}"` : ''}) {
+    sponsorshipsAsMaintainer(activeOnly: ${Boolean(activeOnly)}, first: 100${cursor ? ` after: "${cursor}"` : ''}) {
       totalCount
       pageInfo {
         endCursor
@@ -107,6 +121,7 @@ export function makeQuery(
       nodes {
         createdAt
         privacyLevel
+        isActive
         tier {
           name
           isOneTime

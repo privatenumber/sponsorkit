@@ -99,6 +99,8 @@ export interface ProvidersConfig {
      * Will read from `SPONSORKIT_GITHUB_TYPE` environment variable if not set.
      */
     type?: string
+
+    includeInactiveSponsors?: boolean
   }
   patreon?: {
     /**
