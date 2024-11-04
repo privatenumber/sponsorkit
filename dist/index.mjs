@@ -1,0 +1,12 @@
+export { F as FALLBACK_AVATAR, G as GitHubProvider, P as ProvidersMap, S as SvgComposer, c as convertToWebp, k as dataWebpBase64, i as defaultConfig, h as defaultInlineCSS, f as defaultTiers, e as defineConfig, o as fetchGitHubSponsors, n as fetchSponsors, m as genSvgImage, g as generateBadge, a as guessProviders, l as loadConfig, q as makeQuery, p as partitionTiers, j as presets, b as resolveAvatars, r as resolveProviders, t as tierPresets } from './shared/sponsorkit.f05976ba.mjs';
+import 'unconfig';
+import 'node:process';
+import 'dotenv';
+import 'node:buffer';
+import 'chrome-launcher';
+import 'chrome-remote-interface';
+import 'consola';
+import 'imagemin-webp';
+import 'ofetch';
+import 'node:crypto';
+import 'normalize-url';
